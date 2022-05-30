@@ -12,13 +12,18 @@ namespace Pilot
     {
         REFLECTION_BODY(RigidBodyComponent)
     public:
-        PhysicsActor* m_physics_actor;
+        RigidBodyComponent() = default;
+        ~RigidBodyComponent() override;
 
-        RigidBodyComponent() {}
-        RigidBodyComponent(const RigidBodyActorRes& rigidbody_ast, GObject* parent_object);
-        ~RigidBodyComponent();
+        void postLoadResource(std::weak_ptr<GObject> parent_object) override;
 
         void tick(float delta_time) override {}
-        void destroy() override {}
+        void updateGlobalTransform(const Transform& transform);
+
+    protected:
+        META(Enable)
+        RigidBodyComponentRes m_rigidbody_res;
+
+        PhysicsActor* m_physics_actor {nullptr};
     };
 } // namespace Pilot

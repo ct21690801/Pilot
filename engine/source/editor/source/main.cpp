@@ -3,8 +3,9 @@
 #include <thread>
 #include <unordered_map>
 
-#include "editor//include/editor.h"
 #include "runtime/engine.h"
+
+#include "editor/include/editor.h"
 
 // https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html
 #define PILOT_XSTR(s) PILOT_STR(s)
@@ -18,18 +19,20 @@ int main(int argc, char** argv)
     params.m_root_folder      = pilot_root_folder;
     params.m_config_file_path = pilot_root_folder / "PilotEditor.ini";
 
-    Pilot::PublicSingleton<Pilot::PilotEngine>::getInstance().startEngine(params);
-    Pilot::PublicSingleton<Pilot::PilotEngine>::getInstance().initialize();
+    Pilot::PilotEngine* engine = new Pilot::PilotEngine();
 
-    Pilot::PublicSingleton<Pilot::PilotEditor>::getInstance().initialize(
-        &(Pilot::PublicSingleton<Pilot::PilotEngine>::getInstance()));
+    engine->startEngine(params);
+    engine->initialize();
 
-    Pilot::PublicSingleton<Pilot::PilotEditor>::getInstance().run();
+    Pilot::PilotEditor* editor = new Pilot::PilotEditor();
+    editor->initialize(engine);
 
-    Pilot::PublicSingleton<Pilot::PilotEditor>::getInstance().clear();
+    editor->run();
 
-    Pilot::PublicSingleton<Pilot::PilotEngine>::getInstance().clear();
-    Pilot::PublicSingleton<Pilot::PilotEngine>::getInstance().shutdownEngine();
+    editor->clear();
+
+    engine->clear();
+    engine->shutdownEngine();
 
     return 0;
 }

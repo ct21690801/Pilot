@@ -14,10 +14,10 @@ namespace Pilot
     class PhysicsActor
     {
     public:
-        PhysicsActor(GObject* gobject, const Transform& global_transform);
+        PhysicsActor(std::weak_ptr<GObject> gobject, const Transform& global_transform);
         ~PhysicsActor();
 
-        void createShapes(const std::vector<Reflection::ReflectionPtr<RigidBodyShapeBase>>& shape_defs);
+        void createShapes(const std::vector<RigidBodyShape>& shape_defs, const Transform& global_transform);
 
         Vector3 getLinearVelocity() const;
         void    setLinearVelocity(const Vector3& velocity);
@@ -45,18 +45,21 @@ namespace Pilot
         void      updateInertiaTensor();
         Matrix3x3 getInertiaTensor() const;
 
-        const std::vector<RigidBodyShapeBase*>& getShapes() const { return m_rigidbody_shapes; }
-        Transform&                              getTransform() { return m_global_transform; }
+        const std::vector<RigidBodyShape>& getShapes() const { return m_rigidbody_shapes; }
+        Transform&                         getTransform() { return m_global_transform; }
 
-        GObject* getParentGO() const { return m_parent_object; }
+        std::weak_ptr<GObject> getParentGO() const { return m_parent_object; }
 
         void setActorType(int type) { m_actor_type = type; }
         int  getActorType() const { return m_actor_type; }
 
-    protected:
-        std::vector<RigidBodyShapeBase*> m_rigidbody_shapes;
+        void setGlobalTransform(const Transform& global_transform);
 
-        GObject*  m_parent_object {nullptr};
+    protected:
+        std::vector<RigidBodyShape> m_rigidbody_shapes;
+
+        std::weak_ptr<GObject> m_parent_object;
+
         Transform m_global_transform;
 
         float m_inverse_mass {0.f};

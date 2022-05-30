@@ -8,6 +8,8 @@
 
 namespace Pilot
 {
+    class RenderCamera;
+
     enum class CameraMode : unsigned char
     {
         third_person,
@@ -20,27 +22,26 @@ namespace Pilot
     CLASS(CameraComponent : public Component, WhiteListFields)
     {
         REFLECTION_BODY(CameraComponent)
-    protected:
-        CameraComponentRes m_camera_param;
-
-        CameraMode m_camera_mode {CameraMode::invalid};
-        META(Enable)
-        Vector3 m_foward {Vector3::NEGATIVE_UNIT_Y};
-        META(Enable)
-        Vector3 m_up {Vector3::UNIT_Z};
-        META(Enable)
-        Vector3 m_left {Vector3::UNIT_X};
 
     public:
-        CameraComponent() {}
-        CameraComponent(const CameraComponentRes& camera_param, GObject* parent_object);
+        CameraComponent() = default;
+
+        void postLoadResource(std::weak_ptr<GObject> parent_object) override;
 
         void tick(float delta_time) override;
-        void destroy() override {}
 
     private:
-        void tickFirstPersonCamera(const float delta_time);
-        void tickThirdPersonCamera(const float delta_time);
+        void tickFirstPersonCamera(float delta_time);
+        void tickThirdPersonCamera(float delta_time);
         void tickFreeCamera();
+
+        META(Enable)
+        CameraComponentRes m_camera_res;
+
+        CameraMode m_camera_mode {CameraMode::invalid};
+
+        Vector3 m_foward {Vector3::NEGATIVE_UNIT_Y};
+        Vector3 m_up {Vector3::UNIT_Z};
+        Vector3 m_left {Vector3::UNIT_X};
     };
 } // namespace Pilot

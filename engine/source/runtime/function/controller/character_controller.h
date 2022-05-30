@@ -1,10 +1,10 @@
 #pragma once
 
 #include "runtime/core/math/vector3.h"
+#include "runtime/resource/res_type/data/basic_shape.h"
 
 namespace Pilot
 {
-    class GObject;
     enum SweepPass
     {
         SWEEP_PASS_UP,
@@ -13,26 +13,22 @@ namespace Pilot
         SWEEP_PASS_SENSOR
     };
 
-    class CCTCapsule
+    class Controller
     {
     public:
-        CCTCapsule(float radius, float height) : m_radius(radius), m_height(height) {}
-        ~CCTCapsule() {}
+        virtual ~Controller() = default;
 
-    protected:
-        float m_radius;
-        float m_height;
+        virtual Vector3 move(const Vector3& current_position, const Vector3& displacement) = 0;
     };
 
-    class CharacterController
+    class CharacterController : public Controller
     {
     public:
-        CharacterController(const Vector3& half_extent) : m_half_extent(half_extent) {}
-        ~CharacterController();
+        CharacterController(const Capsule& capsule) : m_capsule(capsule) {}
 
-        Vector3 move(const Vector3& current_position, const Vector3& displacement);
+        Vector3 move(const Vector3& current_position, const Vector3& displacement) override;
 
     private:
-        Vector3 m_half_extent;
+        Capsule m_capsule;
     };
 } // namespace Pilot

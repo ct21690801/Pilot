@@ -1,6 +1,5 @@
 #pragma once
 
-#include "runtime/core/base/public_singleton.h"
 #include "runtime/resource/res_type/common/world.h"
 
 #include <filesystem>
@@ -8,19 +7,14 @@
 
 namespace Pilot
 {
-    class PWorldT;
     class Level;
 
-    class WorldManager : public PublicSingleton<WorldManager>
+    /// Manage all game worlds, it should be support multiple worlds, including game world and editor world.
+    /// Currently, the implement just supports one active world and one active level
+    class WorldManager
     {
-        friend class PublicSingleton<WorldManager>;
-
     public:
-        WorldManager() {}
-        ~WorldManager();
-
-        WorldManager(const WorldManager&) = delete;
-        WorldManager& operator=(const WorldManager&) = delete;
+        virtual ~WorldManager();
 
         void initialize();
         void clear();
@@ -28,18 +22,20 @@ namespace Pilot
         void reloadCurrentLevel();
         void saveCurrentLevel();
 
-        void   tick(const float delta_time);
-        Level* getCurrentActiveLevel() const { return m_current_active_level; }
+        void                 tick(float delta_time);
+        std::weak_ptr<Level> getCurrentActiveLevel() const { return m_current_active_level; }
 
     private:
-        void processPendingLoadWorld();
-        void loadWorld(const WorldRes& pending_load_world);
-        void loadLevel(const std::string& level_url);
+        bool loadWorld(const std::string& world_url);
+        bool loadLevel(const std::string& level_url);
 
-        std::filesystem::path m_pending_load_world_path;
-        std::string           m_current_world_name;
+        bool                      m_is_world_loaded {false};
+        std::string               m_current_world_url;
+        std::shared_ptr<WorldRes> m_current_world_resource;
 
-        std::vector<Level*> m_levels;
-        Level*              m_current_active_level {nullptr};
+        // all loaded levels, key: level url, vaule: level instance
+        std::unordered_map<std::string, std::shared_ptr<Level>> m_loaded_levels;
+        // active level, currently we just support one active level
+        std::weak_ptr<Level> m_current_active_level;
     };
 } // namespace Pilot

@@ -1,6 +1,7 @@
 #include "reflection.h"
-#include "string.h"
+#include <cstring>
 #include <map>
+
 namespace Pilot
 {
     namespace Reflection
@@ -8,16 +9,16 @@ namespace Pilot
         const char* k_unknown_type = "UnknownType";
         const char* k_unknown      = "Unknown";
 
-        static std::map<std::string, class_function_tuple*>      m_class_map;
-        static std::multimap<std::string, filed_function_tuple*> m_field_map;
-        static std::map<std::string, array_function_tuple*>      m_array_map;
+        static std::map<std::string, ClassFunctionTuple*>      m_class_map;
+        static std::multimap<std::string, FieldFunctionTuple*> m_field_map;
+        static std::map<std::string, ArrayFunctionTuple*>      m_array_map;
 
-        void TypeMetaRegisterinterface::registerToFieldMap(const char* name, filed_function_tuple* value)
+        void TypeMetaRegisterinterface::registerToFieldMap(const char* name, FieldFunctionTuple* value)
         {
             m_field_map.insert(std::make_pair(name, value));
         }
 
-        void TypeMetaRegisterinterface::registerToArrayMap(const char* name, array_function_tuple* value)
+        void TypeMetaRegisterinterface::registerToArrayMap(const char* name, ArrayFunctionTuple* value)
         {
             if (m_array_map.find(name) == m_array_map.end())
             {
@@ -29,7 +30,7 @@ namespace Pilot
             }
         }
 
-        void TypeMetaRegisterinterface::registerToClassMap(const char* name, class_function_tuple* value)
+        void TypeMetaRegisterinterface::registerToClassMap(const char* name, ClassFunctionTuple* value)
         {
             if (m_class_map.find(name) == m_class_map.end())
             {
@@ -43,17 +44,17 @@ namespace Pilot
 
         void TypeMetaRegisterinterface::unregisterAll()
         {
-            for (auto itr : m_field_map)
+            for (const auto& itr : m_field_map)
             {
                 delete itr.second;
             }
             m_field_map.clear();
-            for (auto itr : m_class_map)
+            for (const auto& itr : m_class_map)
             {
                 delete itr.second;
             }
             m_class_map.clear();
-            for (auto itr : m_array_map)
+            for (const auto& itr : m_array_map)
             {
                 delete itr.second;
             }
@@ -147,16 +148,12 @@ namespace Pilot
 
         FieldAccessor TypeMeta::getFieldByName(const char* name)
         {
-            for (auto item : m_fields)
-            {
-                if (strcmp(item.getFieldName(), name) == 0)
-                {
-                    return item;
-                }
-            }
-
-            FieldAccessor f_field(nullptr);
-            return f_field;
+            const auto it = std::find_if(m_fields.begin(), m_fields.end(), [&](const auto& i) {
+                return std::strcmp(i.getFieldName(), name) == 0;
+            });
+            if (it != m_fields.end())
+                return *it;
+            return FieldAccessor(nullptr);
         }
 
         TypeMeta& TypeMeta::operator=(const TypeMeta& dest)
@@ -180,7 +177,7 @@ namespace Pilot
             m_functions       = nullptr;
         }
 
-        FieldAccessor::FieldAccessor(filed_function_tuple* functions) : m_functions(functions)
+        FieldAccessor::FieldAccessor(FieldFunctionTuple* functions) : m_functions(functions)
         {
             m_field_type_name = k_unknown_type;
             m_field_name      = k_unknown;
@@ -219,7 +216,7 @@ namespace Pilot
             return f_type.m_is_valid;
         }
 
-        const char* FieldAccessor::getFieldName() { return m_field_name; }
+        const char* FieldAccessor::getFieldName() const { return m_field_name; }
         const char* FieldAccessor::getFieldTypeName() { return m_field_type_name; }
 
         bool FieldAccessor::isArrayType()
@@ -244,7 +241,7 @@ namespace Pilot
             m_func(nullptr), m_array_type_name("UnKnownType"), m_element_type_name("UnKnownType")
         {}
 
-        ArrayAccessor::ArrayAccessor(array_function_tuple* array_func) : m_func(array_func)
+        ArrayAccessor::ArrayAccessor(ArrayFunctionTuple* array_func) : m_func(array_func)
         {
             m_array_type_name   = k_unknown_type;
             m_element_type_name = k_unknown_type;
